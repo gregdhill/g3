@@ -1115,7 +1115,7 @@ function AgentBrowserAccessSetting() {
           ? gt(
               "Allow agents in this project to use the shared browser. Applies when the agent session next starts.",
             )
-          : gt("Allow agents to use the shared browser. Projects can override it.")
+          : gt("Allow agents to use the shared browser.")
       }
       resetAction={
         settings.enableAgentBrowserAccess !== DEFAULT_SERVER_SETTINGS.enableAgentBrowserAccess ? (

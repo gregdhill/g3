@@ -200,7 +200,9 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
             folderIsRepo &&
             (visible.gitActions || (visible.changes && folderIsRepo)),
           // Also for a project that tracks nothing: a thread can change a submodule.
-          repositories: offersGit && density !== "essential" && visible.gitActions,
+          // A new G3 chat has touched no repositories yet, so the empty list stays out of the way.
+          repositories:
+            offersGit && density !== "essential" && visible.gitActions && !props.draftId,
         };
         return (
           <>

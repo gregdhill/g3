@@ -1,4 +1,5 @@
 import { thrownErrorMessage } from "@t3tools/client-runtime/errors";
+import { G3_HIDDEN_KEYBINDING_COMMANDS } from "~/g3Ui";
 import { m as resolveMessage } from "~/i18n/messages";
 import { useEnvironmentScope } from "../../state/session";
 import { useEnvironmentsWithScope, readEnvironmentScope } from "../../state/session";
@@ -1507,8 +1508,12 @@ function useKeybindingCatalog() {
   const merged = mergeWithDefaultKeybindings(serverKeybindings ?? []);
   const m = useMessages();
   return {
-    commandOptions: buildKeybindingCommandOptions(merged, m),
-    allRows: buildKeybindingRows(merged, navigator.platform, sendShortcut, m),
+    commandOptions: buildKeybindingCommandOptions(merged, m).filter(
+      (command) => !G3_HIDDEN_KEYBINDING_COMMANDS.has(command),
+    ),
+    allRows: buildKeybindingRows(merged, navigator.platform, sendShortcut, m).filter(
+      (row) => !G3_HIDDEN_KEYBINDING_COMMANDS.has(row.command),
+    ),
   };
 }
 

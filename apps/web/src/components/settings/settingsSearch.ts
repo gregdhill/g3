@@ -146,7 +146,7 @@ const ALL_SETTINGS_NAV_GROUPS: ReadonlyArray<SettingsNavGroup> = [
       "/settings/general",
       "/settings/appearance",
       "/settings/chat",
-      "/settings/diffs",
+      // G3 hides diffs & pull requests settings; diffs still open from inside a thread.
       "/settings/keybindings",
       "/settings/voice",
       "/settings/snap-shot",

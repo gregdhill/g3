@@ -297,6 +297,7 @@ import { threadRecentUse } from "@t3tools/shared/paletteSearch";
 
 // G3 has one implicit project and no source-control views, so these actions have nothing to act on.
 const G3_HIDDEN_ACTIONS: ReadonlySet<string> = new Set([
+  "action:search-project-contents",
   "action:add-project",
   "action:add-project:wsl-folder",
   "action:new-project",

@@ -1,4 +1,5 @@
 import { managedRuntimeModeDenial } from "@t3tools/client-runtime/contract-labels";
+import { G3_HIDE_PROJECT_UI } from "~/g3Ui";
 import {
   DEFAULT_SERVER_SETTINGS,
   type ModelSelection,
@@ -147,8 +148,8 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
         isProjectScope
           ? gt("Model for new threads in this project.")
           : !unavailable && modelSource !== "project" && automaticModel
-            ? gt("Default model for new threads, selected automatically. Projects can override it.")
-            : gt("Default model for new threads. Projects can override it.")
+            ? gt("Default model for new threads, selected automatically.")
+            : gt("Default model for new threads.")
       }
       status={
         mixedModel
@@ -373,7 +374,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
             description={
               isProjectScope
                 ? gt("Permissions for new threads in this project.")
-                : gt("Default permissions for new threads. Projects can override them.")
+                : gt("Default permissions for new threads.")
             }
             resetAction={
               settings.defaultRuntimeMode !== DEFAULT_SERVER_SETTINGS.defaultRuntimeMode ? (
@@ -437,7 +438,7 @@ export function ProjectDefaultsSettings({ category }: { category: ProjectSetting
               </Select>
             }
           />
-          {workspaceRow}
+          {!G3_HIDE_PROJECT_UI && workspaceRow}
         </>
       ) : (
         <>

@@ -1,4 +1,5 @@
 import { msg } from "gt-react";
+import { G3_HIDE_PROJECT_UI } from "~/g3Ui";
 import { managedCapabilityDenial } from "@t3tools/client-runtime/contract-labels";
 import { useAuth } from "@clerk/react";
 import { Link } from "@tanstack/react-router";
@@ -27,14 +28,14 @@ export function LabsSettingsPanel() {
   return (
     <SettingsPageContainer>
       <SettingsSection id="beta" title={gt("Beta")}>
-        <BoringSidebarRow />
+        {!G3_HIDE_PROJECT_UI && <BoringSidebarRow />}
         {/* Clerk is only mounted when this build has T3 Connect. */}
         {hasCloudPublicConfig() ? <GuestLinksRowWithSignIn /> : <GuestLinksRow />}
         <LinkedEnvironmentsRow />
         <WorkflowsRow />
         <PromptSuggestionsRow />
         <SimlockHostsRow />
-        <FastWorktreeCheckoutRow />
+        {!G3_HIDE_PROJECT_UI && <FastWorktreeCheckoutRow />}
         <AgentFeedbackRow />
       </SettingsSection>
     </SettingsPageContainer>

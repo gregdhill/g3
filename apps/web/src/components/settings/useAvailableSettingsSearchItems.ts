@@ -1,4 +1,9 @@
 import { useMessages } from "gt-react";
+import {
+  G3_HIDDEN_KEYBINDING_COMMANDS,
+  G3_HIDDEN_SETTINGS_IDS,
+  G3_HIDDEN_SETTINGS_PATHS,
+} from "~/g3Ui";
 import { hasFeatureFlag } from "@t3tools/client-runtime/state/server";
 import { AuthEnvironmentMaintainScope } from "@t3tools/contracts";
 
@@ -78,7 +83,7 @@ export function useAvailableSettingsSearchItems() {
   const wslSettingsRowVisible =
     isWslSettingsRowVisible({ state: desktopWsl.data, error: desktopWsl.error }) === true;
 
-  return filterAvailableSettingsSearchItems({
+  const available = filterAvailableSettingsSearchItems({
     localEnvironmentDisabled,
     hasCloudPublicConfig: cloudPublicConfig,
     hasEnvironment,
@@ -94,4 +99,13 @@ export function useAvailableSettingsSearchItems() {
     hasPrimaryEnvironment: primaryEnvironmentId !== null,
     hasSecretProvidersEnvironment,
   });
+  return available.filter(
+    (item) =>
+      !G3_HIDDEN_SETTINGS_PATHS.has(item.to) &&
+      !G3_HIDDEN_SETTINGS_IDS.has(item.id) &&
+      !(
+        item.id.startsWith("keybinding-") &&
+        G3_HIDDEN_KEYBINDING_COMMANDS.has(item.id.slice("keybinding-".length))
+      ),
+  );
 }

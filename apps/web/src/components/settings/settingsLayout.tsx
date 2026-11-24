@@ -1,4 +1,5 @@
 import { SettingsGroup } from "./SettingsGroup";
+import { G3_HIDE_PROJECT_UI } from "~/g3Ui";
 import { AuthSettingsWriteScope } from "@t3tools/contracts";
 import { usePrimaryEnvironmentId, usePrimaryEnvironment } from "../../state/environments";
 import { useEnvironmentScope, useEnvironmentsWithScope } from "../../state/session";
@@ -660,7 +661,7 @@ export function SettingsPageContainer({
         data-settings-page-scroll
       >
         <WorkspacePageContainer width={width} className={cn("gap-8", className)}>
-          <SettingsScopeSentence />
+          {!G3_HIDE_PROJECT_UI && <SettingsScopeSentence />}
           {children}
         </WorkspacePageContainer>
       </div>
