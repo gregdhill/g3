@@ -332,8 +332,6 @@ import {
   offersWorkspaceModes,
   resolveEffectiveEnvMode,
   resolveLocalCheckoutBranchMismatch,
-  shouldShowComposerContextStrip,
-  shouldShowEnvironmentIndicator,
 } from "./BranchToolbar.logic";
 import {
   getProviderStatusDismissalKey,
@@ -1294,14 +1292,6 @@ export default function ChatView(props: ChatViewProps) {
   );
   const hasMultipleEnvironments = logicalProjectEnvironments.length > 1;
   const canAutoBalanceEnvironments = hasMultipleEnvironments && !activeProjectIsScratch;
-  const activeEnvironmentOption =
-    logicalProjectEnvironments.find(
-      (environment) => environment.environmentId === activeThread?.environmentId,
-    ) ?? null;
-  const showComposerEnvironmentIndicator = shouldShowEnvironmentIndicator({
-    activeEnvironment: activeEnvironmentOption,
-    canPickEnvironment: hasMultipleEnvironments,
-  });
 
   const pullRequestLinking = usePullRequestLinking(environmentId);
   // Best effort: the thread already exists, so a failed link is only logged.
@@ -1895,15 +1885,8 @@ export default function ChatView(props: ChatViewProps) {
           providerSubagentModels,
           reportedModelSelection,
         );
-  const showComposerContextStrip =
-    !embedded &&
-    shouldShowComposerContextStrip({
-      isDraftHeroState,
-      persistInActiveThreads: settings.persistComposerContextStrip,
-      hasActiveProject: activeProject !== null && !showProviderSubagentBar,
-      isGitRepo,
-      showEnvironmentIndicator: showComposerEnvironmentIndicator,
-    });
+  // G3 runs every chat in one folder, so the checkout/worktree/branch strip under the composer is hidden.
+  const showComposerContextStrip = false;
   const terminalShortcutLabelOptions = {
     context: {
       terminalFocus: true,
