@@ -7855,6 +7855,10 @@
       "v": "v"
     }
   ],
+  "d8091d94631bce12": "Failed to change the chats folder",
+  "175257f0e58a0e31": "Chats",
+  "276dd6669e6adfa8": "Chats folder",
+  "31c020fba42d394c": "Every chat and terminal starts in this folder. The G3_CHATS_DIR environment variable overrides it.",
   "d0e747ae0c4f68a5": "Не удалось установить t3",
   "ba3ac338f36cba74": "Не удалось удалить t3",
   "9c942b53b58119b8": "Не удалось добавить t3 в PATH",

@@ -1,4 +1,5 @@
 import { thrownErrorMessage } from "@t3tools/client-runtime/errors";
+import { ChatsFolderSettings } from "./ChatsFolderSettings";
 import { G3_HIDE_PROJECT_UI } from "~/g3Ui";
 import { m as resolveMessage } from "~/i18n/messages";
 import { useAtomValue } from "@effect/atom-react";
@@ -859,6 +860,8 @@ export function GeneralSettingsPanel() {
 
   return (
     <SettingsPageContainer>
+      <ChatsFolderSettings />
+
       <SettingsSection id="notifications" title={gt("Notifications")}>
         <NotificationSettings />
         <SettingsRow

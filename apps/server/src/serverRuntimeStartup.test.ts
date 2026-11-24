@@ -151,7 +151,7 @@ it.effect.each([
           capabilities: { repositoryIdentity: true },
         }),
       }),
-      Layer.mock(ProjectStore.ProjectStoreV2)({}),
+      Layer.mock(ProjectStore.ProjectStoreV2)({ listShells: () => Effect.succeed([]) }),
       Layer.mock(ProjectService.ProjectService)({
         bootstrap: () =>
           scenario === "project-failure"

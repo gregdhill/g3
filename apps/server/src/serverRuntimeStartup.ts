@@ -40,7 +40,7 @@ import * as ServerSettings from "./serverSettings.ts";
 import { forkParked, forkParkedFiber } from "./serverActivation.ts";
 import * as AnalyticsService from "./telemetry/AnalyticsService.ts";
 import { getServerOwners } from "./telemetry/Identify.ts";
-import { G3_CHATS_PROJECT_TITLE, resolveChatsRoot } from "./chatsRoot.ts";
+import { G3_CHATS_PROJECT_TITLE, hasExplicitChatsRoot, resolveChatsRoot } from "./chatsRoot.ts";
 import * as ServerEnvironment from "./environment/ServerEnvironment.ts";
 import * as EnvironmentAuth from "./auth/EnvironmentAuth.ts";
 import {
@@ -253,6 +253,21 @@ const resolveWelcomeBase = Effect.gen(function* () {
 
 // G3 has no projects: every chat lives in one project rooted at the chats directory.
 const resolveChatsProjectTargets = Effect.gen(function* () {
+  // G3_CHATS_DIR wins when set; otherwise keep the folder last chosen in Settings.
+  if (!hasExplicitChatsRoot()) {
+    const existing = yield* (yield* ProjectStore.ProjectStoreV2).listShells().pipe(
+      Effect.map((shells) => shells.find((shell) => shell.title === G3_CHATS_PROJECT_TITLE)),
+      Effect.catch((cause) =>
+        Effect.logWarning("Failed to list projects for the chats folder", { cause }).pipe(
+          Effect.as(undefined),
+        ),
+      ),
+    );
+    if (existing !== undefined) {
+      const targets: AutoBootstrapWelcomeTargets = { bootstrapProjectId: existing.id };
+      return targets;
+    }
+  }
   const random = yield* SecureRandom.SecureRandom;
   const randomUUID = random.uuidV4();
   const projects = yield* ProjectService.ProjectService;
