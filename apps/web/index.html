@@ -122,6 +122,20 @@
               chrome: "oklch(0.225975 0.031062 293.741)",
             },
           },
+          vscode: {
+            light: {
+              background: "#ffffff",
+              foreground: "#3b3b3b",
+              accent: "#005fb8",
+              chrome: "#f8f8f8",
+            },
+            dark: {
+              background: "#1f1f1f",
+              foreground: "#cccccc",
+              accent: "#0078d4",
+              chrome: "#181818",
+            },
+          },
         };
         const BUILT_IN_THEME_MODES = Object.fromEntries(
           Object.entries(BUILT_IN_THEME_PALETTES).map(([id, palettes]) => [
@@ -138,11 +152,13 @@
           "ocean",
           "ember",
           "iris",
+          "vscode",
           "t3-chat-dark",
           "t3-grove",
           "t3-ocean",
           "t3-ember",
           "t3-iris",
+          "t3-vscode",
         ];
         const setThemeColor = (color) => {
           for (const meta of document.querySelectorAll('meta[name="theme-color"]')) {
@@ -227,6 +243,7 @@
             "t3-ocean": "ocean",
             "t3-ember": "ember",
             "t3-iris": "iris",
+            "t3-vscode": "vscode",
           };
           const isLegacyT3ChatDark = storedTheme === "t3-chat-dark";
           const themeId =
