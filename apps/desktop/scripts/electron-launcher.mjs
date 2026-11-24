@@ -13,7 +13,7 @@ const repoRoot = NodePath.resolve(desktopDir, "..", "..");
 const devBundleIdSuffix = NodePath.basename(repoRoot)
   .toLowerCase()
   .replaceAll(/[^a-z0-9]+/g, "");
-const APP_DISPLAY_NAME = isDevelopment ? "G3 (Dev)" : "G3 (Beta)";
+const APP_DISPLAY_NAME = isDevelopment ? "G3 (Dev)" : "G3";
 const APP_BUNDLE_ID = isDevelopment
   ? `dev.g3.app.dev.${devBundleIdSuffix || "local"}`
   : "dev.g3.app";
