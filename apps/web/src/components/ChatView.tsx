@@ -1,6 +1,6 @@
 import { m } from "../i18n/messages";
 import { thrownErrorMessage } from "@t3tools/client-runtime/errors";
-import { useGT, useMessages } from "gt-react";
+import { T, useGT, useMessages } from "gt-react";
 import { ChildThreadApprovals } from "./chat/ChildThreadApprovals";
 import { draftSupportedRuntimeModes } from "./chat/runtimeModeConfig";
 import { workspaceAreaProps } from "../lib/workspaceFocus";
@@ -236,17 +236,14 @@ import {
 } from "../hooks/useSettings";
 import { useNowMinute } from "../hooks/useNowMinute";
 import { usePanelAnimationSettings, usePanelPresence } from "../panelAnimations";
-import { useNewThreadHandler } from "../hooks/useHandleNewThread";
 import { useWorktreeRepositoryChoices } from "../hooks/useWorktreeRepositoryChoices";
 import { useRememberedWorktreeRepositories } from "../worktreeRepositoryChoiceStore";
 import { useOpenPanelPullRequestUrl } from "../hooks/useOpenPanelPullRequestUrl";
 import { isPreviewFocused } from "../lib/previewFocus";
 import { getTerminalFocusOwner } from "../lib/terminalFocus";
 import { draftModelSelectionApplies, threadHasStarted } from "../lib/chatThreadActions";
-import {
-  deriveLogicalProjectKeyFromSettings,
-  selectProjectGroupingSettings,
-} from "@t3tools/client-runtime/state/project-grouping";
+import { selectProjectGroupingSettings } from "@t3tools/client-runtime/state/project-grouping";
+import { useNewThreadHandler } from "../hooks/useHandleNewThread";
 import {
   isSameSidebarThreadRef,
   useSidebarPendingFileDropStore,
@@ -298,7 +295,6 @@ import {
 } from "../state/entities";
 import { useEnvironmentShellHasSnapshot } from "../state/shell";
 import { ChatComposer, type ChatComposerHandle } from "./chat/ChatComposer";
-import { DraftHeroHeadline } from "./chat/DraftHeroHeadline";
 import { ExpandedImageDialogHost, openExpandedImagePreview } from "./chat/ExpandedImageDialog";
 import {
   BranchRestoreConfirmHost,
@@ -1233,20 +1229,7 @@ export default function ChatView(props: ChatViewProps) {
   const handleNewThreadInActiveProject = () => {
     startNewThreadForProject(activeProjectRef, handleNewThread);
   };
-  const handleNewThreadInActiveProjectStable = useStableCallback(handleNewThreadInActiveProject);
   const projectGroupingSettings = selectProjectGroupingSettings(settings);
-  const activeDraftLogicalProjectKey =
-    !isServerThread && activeProject
-      ? deriveLogicalProjectKeyFromSettings(activeProject, projectGroupingSettings)
-      : undefined;
-  const handleOpenDraftProjectSettings = () => {
-    if (!activeDraftLogicalProjectKey) return;
-    void navigate({
-      to: "/projects/$projectKey",
-      params: { projectKey: activeDraftLogicalProjectKey },
-    });
-  };
-  const handleOpenDraftProjectSettingsStable = useStableCallback(handleOpenDraftProjectSettings);
   const activeEnvironmentBootstrapComplete = useEnvironmentShellHasSnapshot(
     activeThread?.environmentId ?? null,
   );
@@ -3591,10 +3574,6 @@ export default function ChatView(props: ChatViewProps) {
               parentThreadLink={headerParentThreadLink}
               onOpenThread={onOpenRelatedThreadStable}
               rightPanelOpen={inlineRightPanelOwnsTitleBar}
-              onNewThreadInProject={handleNewThreadInActiveProjectStable}
-              {...(activeDraftLogicalProjectKey
-                ? { onOpenProjectSettings: handleOpenDraftProjectSettingsStable }
-                : {})}
               {...(threadFindEnabled ? { onFindInThread: openThreadFindStable } : {})}
             />
           </header>
@@ -3795,11 +3774,9 @@ export default function ChatView(props: ChatViewProps) {
                             : undefined
                         }
                       >
-                        <DraftHeroHeadline
-                          draftId={draftId}
-                          activeProjectRef={activeProjectRef}
-                          activeProjectTitle={activeProject?.title ?? null}
-                        />
+                        <h1 className="w-full text-center font-normal text-2xl text-foreground tracking-tight sm:text-3xl">
+                          <T>What should we work on?</T>
+                        </h1>
                       </div>
                     </div>
                   ) : null}

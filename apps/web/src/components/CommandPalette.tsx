@@ -295,6 +295,22 @@ import { IssueGlyph } from "~/components/issue/issuePresentation";
 import { useThreadRouteTarget } from "../hooks/useThreadRouteTarget";
 import { threadRecentUse } from "@t3tools/shared/paletteSearch";
 
+// G3 has one implicit project and no source-control views, so these actions have nothing to act on.
+const G3_HIDDEN_ACTIONS: ReadonlySet<string> = new Set([
+  "action:add-project",
+  "action:add-project:wsl-folder",
+  "action:new-project",
+  "action:new-thread-in",
+  "action:new-thread-without-project",
+  "action:project-pin",
+  "action:project-settings",
+  "action:pull-requests",
+  "action:issues",
+  "action:link-pull-request",
+  "action:open-thread-pull-requests",
+  "action:triage",
+]);
+
 const EMPTY_BROWSE_ENTRIES: FilesystemBrowseResult["entries"] = [];
 const ADD_PROJECT_ENTRY_GROUP = "add-project";
 const NEW_THREAD_IN_GROUP = "projects";
@@ -1860,7 +1876,13 @@ function OpenCommandPaletteDialog(props: {
     });
   }
 
-  const rootGroups = buildRootGroups({ actionItems, recentThreadItems }, messages);
+  const rootGroups = buildRootGroups(
+    {
+      actionItems: actionItems.filter((item) => !G3_HIDDEN_ACTIONS.has(item.value)),
+      recentThreadItems,
+    },
+    messages,
+  );
   // Every setting goes to the palette's own matcher, so settings get the same
   // word starts and typo tolerance as threads.
   const settingsSearchItems: CommandPaletteActionItem[] = settingsForThisPlatform(

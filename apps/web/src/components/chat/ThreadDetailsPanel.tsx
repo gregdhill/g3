@@ -187,7 +187,8 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
         const show = {
           environment: density === "full" && visible.environment,
           openIn: density !== "essential" && visible.openIn && props.showOpenInPicker,
-          scripts: visible.scripts && props.activeProjectScripts !== undefined,
+          // G3 chats share one folder, so per-project scripts have no home.
+          scripts: false,
           branch: offersGit && folderIsRepo && visible.branch,
           // Without a branch selector, linked pull requests still need somewhere to show.
           pullRequests: !(offersGit && folderIsRepo) && visible.branch,
@@ -195,7 +196,8 @@ export function ThreadDetailsPanel(props: ThreadDetailsPanelProps) {
           git:
             offersGit &&
             props.activeProjectName !== undefined &&
-            (folderIsRepo || (!tracksFolders && taskFolder === null)) &&
+            // G3 never offers to turn the shared chats folder into a repository.
+            folderIsRepo &&
             (visible.gitActions || (visible.changes && folderIsRepo)),
           // Also for a project that tracks nothing: a thread can change a submodule.
           repositories: offersGit && density !== "essential" && visible.gitActions,

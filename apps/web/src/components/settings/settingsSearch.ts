@@ -163,10 +163,6 @@ const ALL_SETTINGS_NAV_GROUPS: ReadonlyArray<SettingsNavGroup> = [
     ],
   },
   {
-    heading: msg("Code"),
-    paths: ["/settings/projects", "/settings/source-control", "/settings/worktrees"],
-  },
-  {
     heading: msg("Connections"),
     paths: ["/settings/connections", "/settings/access", "/settings/secrets"],
   },

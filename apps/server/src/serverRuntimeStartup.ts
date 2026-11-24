@@ -1,13 +1,8 @@
 import {
   CommandId,
-  DEFAULT_MODEL,
-  DEFAULT_PROVIDER_INTERACTION_MODE,
   DEFAULT_SERVER_SETTINGS,
-  isListedThreadLineage,
-  type ModelSelection,
   type Project,
   ProjectId,
-  ProviderInstanceId,
   ThreadId,
 } from "@t3tools/contracts";
 import { resolveProjectSettings } from "@t3tools/shared/projectSettings";
@@ -21,7 +16,6 @@ import * as Effect from "effect/Effect";
 import * as Exit from "effect/Exit";
 import * as Fiber from "effect/Fiber";
 import * as Layer from "effect/Layer";
-import * as Path from "effect/Path";
 import * as Queue from "effect/Queue";
 import * as Ref from "effect/Ref";
 import * as Schema from "effect/Schema";
@@ -36,7 +30,6 @@ import * as LegacyV1ThreadImporter from "./orchestration-v2/legacy/LegacyV1Threa
 import * as Orchestrator from "./orchestration-v2/Orchestrator.ts";
 import * as ProviderRuntimeRecovery from "./orchestration-v2/ProviderRuntimeRecoveryService.ts";
 import * as ProviderSessionManager from "./orchestration-v2/ProviderSessionManager.ts";
-import * as ThreadLaunch from "./orchestration-v2/ThreadLaunchService.ts";
 import * as ThreadManagement from "./orchestration-v2/ThreadManagementService.ts";
 import * as ProjectService from "./project/ProjectService.ts";
 import * as GitVcsDriver from "./vcs/GitVcsDriver.ts";
@@ -47,6 +40,7 @@ import * as ServerSettings from "./serverSettings.ts";
 import { forkParked, forkParkedFiber } from "./serverActivation.ts";
 import * as AnalyticsService from "./telemetry/AnalyticsService.ts";
 import { getServerOwners } from "./telemetry/Identify.ts";
+import { G3_CHATS_PROJECT_TITLE, resolveChatsRoot } from "./chatsRoot.ts";
 import * as ServerEnvironment from "./environment/ServerEnvironment.ts";
 import * as EnvironmentAuth from "./auth/EnvironmentAuth.ts";
 import {
@@ -178,11 +172,6 @@ const recordStartupHeartbeat = Effect.gen(function* () {
   yield* analytics.recordOwners(yield* getServerOwners, "server");
 });
 
-const getAutoBootstrapThreadModelSelection = (): ModelSelection => ({
-  instanceId: ProviderInstanceId.make("codex"),
-  model: DEFAULT_MODEL,
-});
-
 interface AutoBootstrapWelcomeTargets {
   readonly bootstrapProjectId?: ProjectId;
   readonly bootstrapThreadId?: ThreadId;
@@ -262,86 +251,30 @@ const resolveWelcomeBase = Effect.gen(function* () {
   } as const;
 });
 
-const resolveAutoBootstrapWelcomeTargets = Effect.gen(function* () {
+// G3 has no projects: every chat lives in one project rooted at the chats directory.
+const resolveChatsProjectTargets = Effect.gen(function* () {
   const random = yield* SecureRandom.SecureRandom;
   const randomUUID = random.uuidV4();
-  const serverConfig = yield* ServerConfig.ServerConfig;
   const projects = yield* ProjectService.ProjectService;
-  const threads = yield* ThreadManagement.ThreadManagementService;
-  const threadLaunch = yield* ThreadLaunch.ThreadLaunchService;
-  const path = yield* Path.Path;
-
-  let bootstrapProjectId: ProjectId | undefined;
-  let bootstrapThreadId: ThreadId | undefined;
-
-  if (serverConfig.autoBootstrapProjectFromCwd) {
-    const threadModelSelection = getAutoBootstrapThreadModelSelection();
-    const bootstrapped = yield* projects
-      .bootstrap({
-        commandId: CommandId.make(yield* randomUUID),
-        projectId: ProjectId.make(yield* randomUUID),
-        title: path.basename(serverConfig.cwd) || "project",
-        workspaceRoot: serverConfig.cwd,
-      })
-      .pipe(
-        // A folder the project rules refuse must not stop the server from starting there.
-        Effect.catchTags({
-          ProjectInvalidError: (error) =>
-            Effect.logWarning("Skipped bootstrap project", { detail: error.detail }).pipe(
-              Effect.as(undefined),
-            ),
-        }),
-      );
-    if (bootstrapped === undefined) return {} satisfies AutoBootstrapWelcomeTargets;
-    const { project } = bootstrapped;
-    const existingThread = (yield* threads.listActiveShellIndex()).find(
-      (thread) => thread.projectId === project.id && isListedThreadLineage(thread.lineage),
+  const bootstrapped = yield* projects
+    .bootstrap({
+      commandId: CommandId.make(yield* randomUUID),
+      projectId: ProjectId.make(yield* randomUUID),
+      title: G3_CHATS_PROJECT_TITLE,
+      workspaceRoot: resolveChatsRoot(),
+    })
+    .pipe(
+      // A folder the project rules refuse must not stop the server from starting there.
+      Effect.catchTags({
+        ProjectInvalidError: (error) =>
+          Effect.logWarning("Skipped chats project", { detail: error.detail }).pipe(
+            Effect.as(undefined),
+          ),
+      }),
     );
-    if (existingThread === undefined) {
-      const serverSettings = yield* ServerSettings.ServerSettingsService;
-      const settings = yield* serverSettings.getSettings;
-      const launched = yield* threadLaunch
-        .launch({
-          commandId: CommandId.make(yield* randomUUID),
-          projectId: project.id,
-          title: "New thread",
-          modelSelection:
-            resolveProjectSettings(settings, project.id, project).settings.defaultModelSelection ??
-            threadModelSelection,
-          interactionMode: DEFAULT_PROVIDER_INTERACTION_MODE,
-          runtimeMode: resolveProjectSettings(settings, project.id, project).settings
-            .defaultRuntimeMode,
-          workspaceStrategy: { type: "root" },
-          createdBy: "system",
-          creationSource: "server",
-        })
-        .pipe(
-          // The bootstrap thread is optional; its launch must not prevent opening the app.
-          Effect.catchTags({
-            ThreadManagementProviderInstanceDisabledError: (error) =>
-              Effect.logInfo("Skipped bootstrap thread because its provider instance is disabled", {
-                projectId: project.id,
-                instanceId: error.instanceId,
-              }).pipe(Effect.as(undefined)),
-            ThreadLaunchError: (error) =>
-              Effect.logWarning("Failed to launch bootstrap thread", {
-                projectId: project.id,
-                operation: error.operation,
-              }).pipe(Effect.as(undefined)),
-          }),
-        );
-      bootstrapProjectId = project.id;
-      bootstrapThreadId = launched?.threadId;
-    } else {
-      bootstrapProjectId = project.id;
-      bootstrapThreadId = existingThread.id;
-    }
-  }
-
-  return {
-    ...(bootstrapProjectId ? { bootstrapProjectId } : {}),
-    ...(bootstrapThreadId ? { bootstrapThreadId } : {}),
-  } satisfies AutoBootstrapWelcomeTargets;
+  const targets: AutoBootstrapWelcomeTargets =
+    bootstrapped === undefined ? {} : { bootstrapProjectId: bootstrapped.project.id };
+  return targets;
 });
 
 const resolveStartupBrowserTarget = Effect.gen(function* () {
@@ -565,15 +498,10 @@ const make = Effect.fn("serverRuntimeStartup.make")(function* (options?: Startup
           workerFiberRef: effectWorkerFiber,
         }),
       ),
-      autoBootstrap: (serverConfig.autoBootstrapProjectFromCwd
-        ? runStartupPhase(
-            "welcome.autobootstrap",
-            resolveAutoBootstrapWelcomeTargets.pipe(
-              Effect.provideService(SecureRandom.SecureRandom, random),
-            ),
-          )
-        : Effect.succeed({})
-      ).pipe(Effect.map((targets): AutoBootstrapWelcomeTargets => targets)),
+      autoBootstrap: runStartupPhase(
+        "welcome.autobootstrap",
+        resolveChatsProjectTargets.pipe(Effect.provideService(SecureRandom.SecureRandom, random)),
+      ),
     });
     yield* Effect.logInfo("V2 orchestration recovery completed", recovery);
     // Runs after activation: the status check fetches every enabled project's

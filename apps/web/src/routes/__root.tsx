@@ -227,7 +227,8 @@ function RootRouteBranch() {
         </>
       ) : (
         <FirstRunGate
-          enabled={primaryEnvironmentAuthenticated}
+          // G3 skips onboarding: it imports projects, and every chat shares one project.
+          enabled={false}
           hostedStatic={authGateState.status === "hosted-static"}
         >
           {appHosts}
