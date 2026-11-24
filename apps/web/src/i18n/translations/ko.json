@@ -12052,6 +12052,8 @@
     },
     "의 변경 사항"
   ],
+  "557d4c9f3965b57a": "{count, plural, one {# commit behind T3 Code} other {# commits behind T3 Code}}",
+  "7f7623cd9426d0ff": "Start a chat that merges upstream T3 Code into G3 and rebuilds the app.",
   "e7f35f60e6229cf5": "데스크톱 앱",
   "77be1b7e2a1d3d31": "{count, plural, other {머신 {count}대를 업데이트할까요?}}",
   "e4892b21e88abb60": "{count, plural, other {제공자 업데이트 {count}개}}",

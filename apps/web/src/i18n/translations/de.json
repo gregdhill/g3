@@ -12108,6 +12108,8 @@
       "v": "v"
     }
   ],
+  "557d4c9f3965b57a": "{count, plural, one {# commit behind T3 Code} other {# commits behind T3 Code}}",
+  "7f7623cd9426d0ff": "Start a chat that merges upstream T3 Code into G3 and rebuilds the app.",
   "e7f35f60e6229cf5": "Desktop-App",
   "77be1b7e2a1d3d31": "{count, plural, one {{count} Rechner aktualisieren?} other {{count} Rechner aktualisieren?}}",
   "e4892b21e88abb60": "{count, plural, one {{count} Anbieter-Update} other {{count} Anbieter-Updates}}",

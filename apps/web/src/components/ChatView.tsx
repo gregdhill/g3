@@ -1,4 +1,5 @@
 import { m } from "../i18n/messages";
+import { G3_DRAFT_AUTO_SEND_EVENT, hasDraftAutoSend, takeDraftAutoSend } from "~/g3Upstream";
 import { thrownErrorMessage } from "@t3tools/client-runtime/errors";
 import { T, useGT, useMessages } from "gt-react";
 import { ChildThreadApprovals } from "./chat/ChildThreadApprovals";
@@ -3180,6 +3181,24 @@ export default function ChatView(props: ChatViewProps) {
   };
   const onWorktreeSetupWorkLocallyStable = useStableCallback(onWorktreeSetupWorkLocally);
   const onComposerSendStable = useStableCallback(onSend);
+  // oxlint-disable-next-line t3code/no-unreasoned-state-sync -- sends a G3 upstream-update draft once its prompt is in the composer
+  useEffect(() => {
+    if (draftId === null) return;
+    let timer: number | undefined;
+    const sendIfMarked = () => {
+      if (!hasDraftAutoSend(draftId)) return;
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => {
+        if (takeDraftAutoSend(draftId)) void onComposerSendStable();
+      }, 0);
+    };
+    sendIfMarked();
+    window.addEventListener(G3_DRAFT_AUTO_SEND_EVENT, sendIfMarked);
+    return () => {
+      window.removeEventListener(G3_DRAFT_AUTO_SEND_EVENT, sendIfMarked);
+      window.clearTimeout(timer);
+    };
+  }, [draftId, onComposerSendStable]);
   const sendPreviewAnnotation = (
     annotation: PreviewAnnotationPayload,
     image: ComposerImageAttachment | null,

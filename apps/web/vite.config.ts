@@ -18,6 +18,7 @@ import {
   DEV_PROXIED_PATH_PREFIXES,
 } from "@t3tools/shared/devProxy";
 
+import { readG3BuildInfo } from "../../scripts/lib/g3-build-info";
 import { loadRepoEnv } from "../../scripts/lib/public-config";
 import { resolveTaggedSourceVersion } from "../../scripts/lib/tagged-source-version";
 import { thirdPartyLicensesPlugin } from "../../scripts/lib/third-party-licenses";
@@ -26,6 +27,8 @@ import { warmBundledDevPlugin } from "./vite/warmBundledDev";
 import { formatAppDisplayName, resolveWebAppStageLabel } from "./src/branding.logic";
 
 const repoEnv = loadRepoEnv();
+
+const g3BuildInfo = readG3BuildInfo();
 Object.assign(process.env, repoEnv);
 
 // Signal single-origin dev explicitly; loadRepoEnv can restore deleted URL keys from .env.
@@ -353,6 +356,8 @@ export default defineConfig(({ command }) => {
       ],
     },
     define: {
+      "import.meta.env.VITE_G3_UPSTREAM_BASE": JSON.stringify(g3BuildInfo.upstreamBase),
+      "import.meta.env.VITE_G3_SOURCE_DIR": JSON.stringify(g3BuildInfo.sourceDir),
       "import.meta.env.VITE_WS_URL": JSON.stringify(configuredWsUrl ?? ""),
       // Override .env URLs with empty values in single-origin dev so clients use window.location.origin.
       "import.meta.env.VITE_HTTP_URL": JSON.stringify(configuredHttpUrl ?? ""),
