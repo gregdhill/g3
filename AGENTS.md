@@ -1,6 +1,6 @@
 # T3 Code
 
-T3 Code is a minimal GUI for coding agents. A Node WebSocket server wraps provider CLIs and agents (Codex, Claude Code, Cursor, Grok, OpenCode, Antigravity, Kiro, Pi, Muse Code, fx) and serves web, desktop, and mobile clients.
+T3 Code is a minimal GUI for coding agents. A Node WebSocket server wraps provider CLIs and agents (Codex, Claude Code, Cursor, Grok, OpenCode, Antigravity, Kiro, Pi, Muse Code, fx) and serves web and desktop clients.
 
 You can think of T3 Code as an open source "bring-your-own-subscription" alternative to apps like Claude Desktop, Codex App, Cursor Glass and Conductor.
 
@@ -22,13 +22,11 @@ The architecture of T3 Code's websocket layer (`t3`) enables a lot of awesome re
 
 ### 4. Multi-surface
 
-T3 Code has 3 key app surfaces: **web**, **desktop**, and **mobile**.
+T3 Code has 2 key app surfaces: **web** and **desktop**.
 
 **Web** is kind of two surfaces, as we have the public facing "app.t3.codes" as well as locally hosting the web app through the `t3` command. Both need to be supported by all new features where reasonable.
 
-**Desktop** is the main surface most users install first. It's a full Electron app that bundles the server runner as well. The desktop app can also be used as the host server, allowing remote connections from app.t3.codes or the mobile app.
-
-**Mobile** is a React Native app for both iOS and Android, available on the App Store and Google Play. The mobile app allows for connecting to any T3 Code server to control work remotely.
+**Desktop** is the main surface most users install first. It's a full Electron app that bundles the server runner as well. The desktop app can also be used as the host server, allowing remote connections from app.t3.codes.
 
 ## A note from Theo
 
@@ -56,13 +54,13 @@ Of note: Most T3 Code contributions will come from T3 Code itself, often control
 The most common defect in this repo is a change that works on the path you tested and is missing everywhere else. Before calling frontend work done, walk this list and say which entries applied:
 
 - **Entry points.** Chat view, Settings, command palette, and keybindings. Fixing one is not fixing the feature.
-- **Clients.** Web, desktop (Electron shell/IPC), and mobile (React Native). Shared logic lives in `packages/client-runtime`.
+- **Clients.** Web and desktop (Electron shell/IPC). Shared logic lives in `packages/client-runtime`.
 - **Providers.** Every provider adapter needs a decision, even if the decision is "not supported here".
 - **Agents.** Capabilities a user triggers should be service methods reachable by MCP tools and scheduled tasks, not inline handler code.
-- **Contracts.** Wire changes go in `packages/contracts` so server, web, mobile, and desktop follow.
+- **Contracts.** Wire changes go in `packages/contracts` so server, web, and desktop follow.
 - **Reverse states.** Every way in needs a way out and a way to see it (snooze/unsnooze, close/reopen). A one-way door is a bug.
 - **Connection modes.** Local, remote/relay, and tunnel; multi-device and multi-environment.
-- **Languages.** Translate user-facing copy in `apps/{web,mobile}/src/i18n/translations` (`vp run i18n:generate` / `vp run i18n:check`) and `apps/marketing/src/i18n`. See [14_i18n.md](docs/internals/14_i18n.md).
+- **Languages.** Translate user-facing copy in `apps/web/src/i18n/translations` (`vp run i18n:generate` / `vp run i18n:check`). See [14_i18n.md](docs/internals/14_i18n.md).
 - **Docs.** Check whether the change makes existing guidance inaccurate. Follow [Documentation](#documentation).
 
 ## Dev servers and test data
@@ -80,7 +78,7 @@ See [00_development.md](docs/operations/00_development.md) for setup, ports, see
 - Before you push, run `vp run check:changed`. **Do not run repo-wide checks** (`vp check`, `vp run -r test`, `vp run -r typecheck`) unless asked—CI owns the full suite.
 - Iterate with `vp test run <files>` (add `-t "<name>"` for large files) and `vp run typecheck` (`effect-tsgo tsrs --noEmit`). Run `node -e` snippets from the owning package (`effect` does not resolve from repo root).
 - Follow [15_testing.md](docs/internals/15_testing.md) for what to test, bug-fix proof, draining async work (no sleeps/polling), web browser tests (`await using screen = await render(...)`), and real-app [Scenarios](docs/internals/15_testing.md#scenarios) (`vp run scenarios:prove`).
-- Give user-visible frontend changes one integrated pass in a real client: `test-t3-app` for web, `test-t3-mobile` for mobile (primary agent only; subagents do not launch dev servers). Inspect the rendered result and walk the flow as a user using the feature—checking layout, visual hierarchy, and ergonomics—and fix anything rough until you are satisfied before handing back. Use the free `Replay (dev)` provider unless the change depends on a real provider (then pick its cheapest model, e.g. Haiku or Luna). On mobile, run `vp run mobile:install <ios|android> [device-id]` before Metro rather than rebuilding from scratch.
+- Give user-visible frontend changes one integrated pass in a real client: `test-t3-app` (primary agent only; subagents do not launch dev servers). Inspect the rendered result and walk the flow as a user using the feature—checking layout, visual hierarchy, and ergonomics—and fix anything rough until you are satisfied before handing back. Use the free `Replay (dev)` provider unless the change depends on a real provider (then pick its cheapest model, e.g. Haiku or Luna).
 
 ## Evals
 
@@ -115,33 +113,32 @@ Most code changes do not need an internal documentation change. Agents can read 
 ## Where code lives
 
 - `apps/server` - WebSocket, event-sourced orchestration (`Orchestrator` → `EventSink` → `EffectWorker`), providers, checkpointing. Read [02_effect-services.md](docs/internals/02_effect-services.md) and `.repos/effect/LLMS.md`.
-- `apps/web` - React/Vite UI. `apps/desktop` wraps it; `apps/mobile` is React Native; `apps/marketing` is the site.
+- `apps/web` - React/Vite UI. `apps/desktop` wraps it.
 - `packages/contracts` - Effect/Schema wire contracts plus small derived helpers. No heavy runtime logic.
 - `packages/shared` - shared runtime utils, subpath exports, no barrel.
-- `packages/client-runtime` - client connection and domain state shared by web and mobile.
+- `packages/client-runtime` - client connection and domain state shared by web and desktop.
 - `.repos/` - vendored read-only references. Never edit or import from them (`vpr sync:repos` updates them; if sparse-checked-out, read via `git show origin/main:.repos/<path>`).
 
 ### Internal docs by area
 
 Read the matching doc before changing code in that area; code review enforces them.
 
-| Area                                       | Read first                                                                                                                                                                                        |
-| ------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Architecture & orchestration               | [00_glossary.md](docs/internals/00_glossary.md), [01_architecture.md](docs/internals/01_architecture.md)                                                                                          |
-| Server Effect services & errors            | [02_effect-services.md](docs/internals/02_effect-services.md)                                                                                                                                     |
-| Providers & ACP                            | [03_providers.md](docs/internals/03_providers.md)                                                                                                                                                 |
-| Auth, MCP, guest links, assets, security   | [04_environment-auth.md](docs/internals/04_environment-auth.md), [SECURITY.md](SECURITY.md)                                                                                                       |
-| Remote routes, peer links, previews        | [05_remote.md](docs/internals/05_remote.md)                                                                                                                                                       |
-| T3 Connect & relay                         | [06_t3-connect.md](docs/internals/06_t3-connect.md)                                                                                                                                               |
-| Server updates & crash recovery            | [07_server-updates.md](docs/internals/07_server-updates.md)                                                                                                                                       |
-| Telemetry & analytics                      | [08_product-analytics.md](docs/internals/08_product-analytics.md)                                                                                                                                 |
-| Client connection & sync runtime           | [09_connection-runtime.md](docs/internals/09_connection-runtime.md)                                                                                                                               |
-| Web UI primitives, styles & React Compiler | [10_web-ui.md](docs/internals/10_web-ui.md)                                                                                                                                                       |
-| Mobile layout, navigation & dev lifecycle  | [11_mobile-layout.md](docs/internals/11_mobile-layout.md), [12_mobile-navigation.md](docs/internals/12_mobile-navigation.md), [13_mobile-development.md](docs/internals/13_mobile-development.md) |
-| Translations & UI copy                     | [14_i18n.md](docs/internals/14_i18n.md)                                                                                                                                                           |
-| Writing & reviewing tests                  | [15_testing.md](docs/internals/15_testing.md)                                                                                                                                                     |
-| Wire budgets, server metrics & perf        | [16_performance-regressions.md](docs/internals/16_performance-regressions.md)                                                                                                                     |
-| Repo & package scripts                     | [17_scripts.md](docs/internals/17_scripts.md)                                                                                                                                                     |
+| Area                                       | Read first                                                                                               |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------- |
+| Architecture & orchestration               | [00_glossary.md](docs/internals/00_glossary.md), [01_architecture.md](docs/internals/01_architecture.md) |
+| Server Effect services & errors            | [02_effect-services.md](docs/internals/02_effect-services.md)                                            |
+| Providers & ACP                            | [03_providers.md](docs/internals/03_providers.md)                                                        |
+| Auth, MCP, guest links, assets, security   | [04_environment-auth.md](docs/internals/04_environment-auth.md), [SECURITY.md](SECURITY.md)              |
+| Remote routes, peer links, previews        | [05_remote.md](docs/internals/05_remote.md)                                                              |
+| T3 Connect & relay                         | [06_t3-connect.md](docs/internals/06_t3-connect.md)                                                      |
+| Server updates & crash recovery            | [07_server-updates.md](docs/internals/07_server-updates.md)                                              |
+| Telemetry & analytics                      | [08_product-analytics.md](docs/internals/08_product-analytics.md)                                        |
+| Client connection & sync runtime           | [09_connection-runtime.md](docs/internals/09_connection-runtime.md)                                      |
+| Web UI primitives, styles & React Compiler | [10_web-ui.md](docs/internals/10_web-ui.md)                                                              |
+| Translations & UI copy                     | [14_i18n.md](docs/internals/14_i18n.md)                                                                  |
+| Writing & reviewing tests                  | [15_testing.md](docs/internals/15_testing.md)                                                            |
+| Wire budgets, server metrics & perf        | [16_performance-regressions.md](docs/internals/16_performance-regressions.md)                            |
+| Repo & package scripts                     | [17_scripts.md](docs/internals/17_scripts.md)                                                            |
 
 ## Taste
 

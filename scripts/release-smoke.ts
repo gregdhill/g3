@@ -16,12 +16,6 @@ const workspaceFiles = [
   "apps/server/package.json",
   "apps/desktop/package.json",
   "apps/web/package.json",
-  "apps/mobile/package.json",
-  "apps/mobile/modules/t3-highlights/package.json",
-  "apps/mobile/modules/t3-source-text/package.json",
-  "apps/mobile/modules/t3-review-diff/package.json",
-  "apps/mobile/modules/t3-terminal/package.json",
-  "apps/marketing/package.json",
   "infra/relay/package.json",
   "oxlint-plugin-t3code/package.json",
   "packages/client-runtime/package.json",
@@ -69,7 +63,7 @@ function copyWorkspaceManifestFixture(targetRoot: string): void {
   }
 
   // Fork tarballs that file: dependencies install from.
-  for (const forks of ["apps/mobile/deps", "apps/web/deps"]) {
+  for (const forks of ["apps/web/deps"]) {
     const source = NodePath.resolve(repoRoot, forks);
     if (NodeFS.existsSync(source)) {
       NodeFS.cpSync(source, NodePath.resolve(targetRoot, forks), { recursive: true });
